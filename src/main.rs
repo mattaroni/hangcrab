@@ -1,4 +1,5 @@
 use std::{error, fmt::Display};
+
 use clap::Parser;
 
 mod game;

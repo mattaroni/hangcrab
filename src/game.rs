@@ -185,7 +185,7 @@ pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
 
     match ending_state.unwrap() {
         EndingState::Win => println!("You win! {secret_word_message}"),
-        EndingState::Loss => print!("Game over! {secret_word_message}"),
+        EndingState::Loss => println!("Game over! {secret_word_message}"),
         EndingState::Quit => println!("Goodbye!"),
     }
 

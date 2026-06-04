@@ -51,10 +51,6 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Error> {
     // [NOTE]: `filepath` is guarenteed to have a parent directory
     let cache_directory = filepath.parent().unwrap();
 
-    if !cache_directory.parent().unwrap().exists() {
-        println!("FOOOOOO")
-    }
-
     if !cache_directory.exists() {
         fs::create_dir(cache_directory).await.expect("breaks here");
     }
@@ -66,6 +62,8 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Error> {
         let chunk = item?;
         file.write_all(&chunk).await?;
     }
+
+    file.flush().await?;
 
     Ok(())
 }

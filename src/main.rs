@@ -43,6 +43,5 @@ async fn main() -> Result<(), Error> {
     }
 
     let secret_word = wordlist::get_random_word(args.min, args.max).await?;
-    println!("random word: {secret_word}");
-    Ok(())
+    game::play_hangman(secret_word, args.lives)
 }

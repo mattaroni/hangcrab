@@ -6,7 +6,7 @@ use tokio::{fs::{self, File}, io::AsyncWriteExt};
 
 const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
-const WORDLIST_URL: &str = "https://www.mit.edu/~ecprice/wordlist.10000";
+const WORDLIST_URL: &str = "https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt";
 
 type Error = Box<dyn error::Error>;
 
@@ -28,7 +28,7 @@ pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<Str
         .collect();
 
     let random_word = words.choose(&mut rand::rng()).unwrap();
-    Ok(random_word.to_string())
+    Ok(random_word.to_ascii_lowercase())
 }
 
 async fn fetch_wordlist() -> Result<String, Error> {

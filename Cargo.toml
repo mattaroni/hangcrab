@@ -2,6 +2,12 @@
 name = "hangcrab"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.95"
+description = "Rust-powered, CLI implementation of Hangman"
+readme = "README.md"
+repository = "https://github.com/mattaroni/hangcrab"
+license = "MIT"
+publish = false
 
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }

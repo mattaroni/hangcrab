@@ -9,16 +9,6 @@ const WORDLIST_URL: &str = "https://www.mit.edu/~ecprice/wordlist.10000";
 
 type Error = Box<dyn error::Error>;
 
-pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, Error> {
-    let wordlist = fetch_wordlist().await?;
-    let words: Vec<&str> = wordlist.split('\n')
-        .filter(|word| word.len() >= min_length && word.len() <= max_length)
-        .collect();
-
-    let random_word = words.choose(&mut rand::rng()).unwrap();
-    Ok(random_word.to_string())
-}
-
 #[derive(Debug, Clone)]
 struct NotSupportedError;
 
@@ -29,6 +19,16 @@ impl Display for NotSupportedError {
 }
 
 impl error::Error for NotSupportedError {}
+
+pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, Error> {
+    let wordlist = fetch_wordlist().await?;
+    let words: Vec<&str> = wordlist.split('\n')
+        .filter(|word| word.len() >= min_length && word.len() <= max_length)
+        .collect();
+
+    let random_word = words.choose(&mut rand::rng()).unwrap();
+    Ok(random_word.to_string())
+}
 
 async fn fetch_wordlist() -> Result<String, Error> {
     let mut wordlist_path = match dirs::cache_dir() {

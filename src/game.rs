@@ -105,7 +105,7 @@ impl GameTracker {
             return None;
         }
 
-        if guess.chars().all(|letter| letter.is_alphabetic()) {
+        if !guess.chars().all(|letter| letter.is_alphabetic()) {
             println!("Please guess a valid letter or word.");
             return None;
         }

@@ -37,7 +37,6 @@ struct Cli {
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let args = Cli::parse();
-    println!("range: {}-{}", args.min, args.max);
 
     if args.lives == 0 {
         return Err(Box::from(ZeroLivesError));

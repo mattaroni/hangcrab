@@ -144,11 +144,11 @@ impl GameTracker {
 
         match count {
             0 => {
-                println!("There are no letter {capital_letter}s.");
+                println!("There are no letter {capital_letter}'s.");
                 self.lives -= 1;
             },
             1 => println!("There is 1 letter {capital_letter}."),
-            x => println!("There are {x} letter {capital_letter}s."),
+            x => println!("There are {x} letter {capital_letter}'s."),
         }
 
         if !self.tried_letters.is_empty() {

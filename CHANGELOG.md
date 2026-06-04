@@ -7,16 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Nothing (yet).
+- Change source for [wordlist](https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt).
 
 ## [0.1.0] - 2026-06-04
 
 ### Added
 
 - Basic functionality.
-- Automatic caching for the online wordlist.
+- Automatic caching for the online [wordlist](https://www.mit.edu/~ecprice/wordlist.10000).
 - Option to adjust the minimum and maximum wordlength for the secret word.
 - Option to adjust how many lives the player starts with.
 

@@ -95,7 +95,7 @@ impl GameTracker {
             return Ok(Some(EndingState::Quit));
         }
 
-        guess = guess.to_ascii_lowercase();
+        guess = guess.trim_end().to_ascii_lowercase();
         Ok(self.check_guess(guess))
     }
 

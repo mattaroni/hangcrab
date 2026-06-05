@@ -10,10 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change source for [wordlist](https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt).
+- Make error message from setting `--min` higher than `--max` less vague.
+- Make printed error messages cleaner.
 
 ### Fixed
 
-- Spelling mistake in NotSupportedError message.
+- Disallow user from being able to start with zero lives.
+
+### Removed
+
+- Default minimum/maximum wordlength specification for the secret word. Words
+  of any length are now allowed by default.
 
 ## [0.1.0] - 2026-06-04
 

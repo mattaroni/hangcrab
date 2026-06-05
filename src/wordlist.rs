@@ -40,7 +40,7 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
     let cache_directory = filepath.parent().unwrap();
 
     if !cache_directory.exists() {
-        fs::create_dir(cache_directory).await.expect("breaks here");
+        fs::create_dir(cache_directory).await?;
     }
 
     let mut file = File::create(filepath).await?;

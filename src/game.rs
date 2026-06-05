@@ -172,6 +172,10 @@ impl GameTracker {
 }
 
 pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), String> {
+    if lives == 0 {
+        return Err("cannot start with zero lives".to_string());
+    }
+
     let secret_word_message = format!("The secret word was: {}", secret_word);
     let mut game_tracker = GameTracker::new(secret_word, lives);
     let mut ending_state: Option<EndingState> = None;

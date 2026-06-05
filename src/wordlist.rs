@@ -9,6 +9,10 @@ const WORDLIST_FILENAME: &str = "wordlist.txt";
 const WORDLIST_URL: &str = "https://www.mit.edu/~ecprice/wordlist.10000";
 
 pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, String> {
+    if min_length > max_length {
+        return Err("wordlength minimum cannot be greater than the maximum".to_string())
+    }
+
     let wordlist = fetch_wordlist().await?;
     let words: Vec<&str> = wordlist.split('\n')
         .filter(|word| word.len() >= min_length && word.len() <= max_length)

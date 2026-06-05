@@ -1,6 +1,4 @@
-use std::{collections::HashSet, error, fmt::Display, io::{self, Write}};
-
-type Error = Box<dyn error::Error>;
+use std::{collections::HashSet, fmt::Display, io::{self, Write}};
 
 struct SecretLetter { letter: char, hidden: bool }
 
@@ -77,7 +75,7 @@ impl GameTracker {
         Self { secret_word, lives, tried_letters, guesses }
     }
 
-    fn ask_for_guess(&mut self) -> Result<Option<EndingState>, Error> {
+    fn ask_for_guess(&mut self) -> Result<Option<EndingState>, io::Error> {
         let mut guess = String::new();
 
         print!("{} · {} lives", self.secret_word, self.lives);
@@ -173,13 +171,13 @@ impl GameTracker {
     }
 }
 
-pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
+pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), String> {
     let secret_word_message = format!("The secret word was: {}", secret_word);
     let mut game_tracker = GameTracker::new(secret_word, lives);
     let mut ending_state: Option<EndingState> = None;
 
     while ending_state.is_none() {
-        ending_state = game_tracker.ask_for_guess()?;
+        ending_state = game_tracker.ask_for_guess().map_err(|e| e.to_string())?;
         println!();
     }
 

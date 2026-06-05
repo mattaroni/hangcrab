@@ -1,4 +1,4 @@
-use std::{error, fmt::Display, path::PathBuf};
+use std::{error::Error, path::PathBuf};
 
 use futures_util::StreamExt;
 use rand::prelude::*;
@@ -8,20 +8,7 @@ const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
 const WORDLIST_URL: &str = "https://www.mit.edu/~ecprice/wordlist.10000";
 
-type Error = Box<dyn error::Error>;
-
-#[derive(Debug, Clone)]
-struct NotSupportedError;
-
-impl Display for NotSupportedError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "operating system not supported by appliction")
-    }
-}
-
-impl error::Error for NotSupportedError {}
-
-pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, Error> {
+pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, String> {
     let wordlist = fetch_wordlist().await?;
     let words: Vec<&str> = wordlist.split('\n')
         .filter(|word| word.len() >= min_length && word.len() <= max_length)
@@ -31,24 +18,24 @@ pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<Str
     Ok(random_word.to_string())
 }
 
-async fn fetch_wordlist() -> Result<String, Error> {
+async fn fetch_wordlist() -> Result<String, String> {
     let mut wordlist_path = match dirs::cache_dir() {
         Some(x) => x,
-        None => return Err(Box::new(NotSupportedError)),
+        None => return Err("unsupported operating system".to_string()),
     };
 
     wordlist_path.push(CACHE_DIRECTORY_NAME);
     wordlist_path.push(WORDLIST_FILENAME);
 
     if !wordlist_path.exists() {
-        download_wordlist(&wordlist_path).await?;
+        download_wordlist(&wordlist_path).await.map_err(|e| e.to_string())?;
     }
 
-    let wordlist = fs::read_to_string(wordlist_path).await?;
+    let wordlist = fs::read_to_string(wordlist_path).await.map_err(|e| e.to_string())?;
     Ok(wordlist)
 }
 
-async fn download_wordlist(filepath: &PathBuf) -> Result<(), Error> {
+async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
     // [NOTE]: `filepath` is guarenteed to have a parent directory
     let cache_directory = filepath.parent().unwrap();
 

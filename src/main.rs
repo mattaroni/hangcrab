@@ -1,22 +1,7 @@
-use std::{error, fmt::Display};
-
 use clap::Parser;
 
 mod game;
 mod wordlist;
-
-type Error = Box<dyn error::Error>;
-
-#[derive(Debug, Clone)]
-struct ZeroLivesError;
-
-impl Display for ZeroLivesError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Cannot start game with zero lives")
-    }
-}
-
-impl error::Error for ZeroLivesError {}
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -35,11 +20,11 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), String> {
     let args = Cli::parse();
 
     if args.lives == 0 {
-        return Err(Box::from(ZeroLivesError));
+        return Err("Cannot start with 0 lives".to_string());
     }
 
     let secret_word = wordlist::get_random_word(args.min, args.max).await?;

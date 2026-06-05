@@ -20,13 +20,16 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), String> {
+async fn main() {
     let args = Cli::parse();
 
-    if args.lives == 0 {
-        return Err("Cannot start with 0 lives".to_string());
-    }
+    let runner = async || {
+        let secret_word = wordlist::get_random_word(args.min, args.max).await?;
+        game::play_hangman(secret_word, args.lives)
+    };
 
-    let secret_word = wordlist::get_random_word(args.min, args.max).await?;
-    game::play_hangman(secret_word, args.lives)
+    match runner().await {
+        Ok(_) => (),
+        Err(e) => eprintln!("error: {e}"), // [TODO] use same/similar formatting as clap errors
+    }
 }

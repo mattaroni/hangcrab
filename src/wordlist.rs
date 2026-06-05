@@ -15,7 +15,7 @@ struct NotSupportedError;
 
 impl Display for NotSupportedError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "operating system not supported by appliction")
+        write!(f, "operating system not supported by application")
     }
 }
 

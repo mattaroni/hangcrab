@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change source for [wordlist](https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt).
 
+### Fixed
+
+- Spelling mistake in NotSupportedError message.
+
 ## [0.1.0] - 2026-06-04
 
 ### Added

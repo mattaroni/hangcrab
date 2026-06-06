@@ -10,13 +10,13 @@ struct Cli {
     #[arg(short, long, default_value_t = 7)]
     lives: u8,
 
-    /// Minimum wordlength
-    #[arg(short, long, default_value_t = 5)]
-    min: usize,
+    /// Specify a minimum wordlength for the secret word
+    #[arg(short, long)]
+    min: Option<usize>,
 
-    /// Maximum wordlength
-    #[arg(short = 'M', long, default_value_t = 12)]
-    max: usize,
+    /// Specify a maximum wordlength for the secret word
+    #[arg(short = 'M', long)]
+    max: Option<usize>,
 }
 
 #[tokio::main]

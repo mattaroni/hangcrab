@@ -8,17 +8,14 @@ const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
 const WORDLIST_URL: &str = "https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt";
 
-pub async fn get_random_word(min_length: usize, max_length: usize) -> Result<String, String> {
-    if min_length > max_length {
-        return Err("wordlength minimum cannot be greater than the maximum".to_string())
-    }
-
+pub async fn get_random_word(min: Option<usize>, max: Option<usize>) -> Result<String, String> {
+    let wordlength_filter = create_wordlength_filter(min, max)?;
     let wordlist = fetch_wordlist().await?;
-    let words: Vec<&str> = wordlist.split('\n')
-        .filter(|word| word.len() >= min_length && word.len() <= max_length)
-        .collect();
+    let words: Vec<&str> = wordlist.split('\n').filter(wordlength_filter).collect();
 
-    let random_word = words.choose(&mut rand::rng()).unwrap();
+    let random_word = words.choose(&mut rand::rng())
+        .ok_or("no word found matching your specifications")?;
+
     Ok(random_word.to_ascii_lowercase())
 }
 
@@ -58,4 +55,28 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
     file.flush().await?;
 
     Ok(())
+}
+
+fn create_wordlength_filter(
+    minimum: Option<usize>,
+    maximum: Option<usize>,
+) -> Result<Box<dyn Fn(&&str) -> bool>, String> {
+    let handle_min_max = |min, max| {
+        if min > max {
+            return Err("wordlength minimum cannot be greater than maximum".to_string());
+        }
+
+        Ok(move |word: &&str| word.len() >= min && word.len() <= max)
+    };
+
+    match minimum {
+        Some(min) => match maximum {
+            Some(max) => Ok(Box::new(handle_min_max(min, max)?)),
+            None => Ok(Box::new(move |word| word.len() >= min)),
+        },
+        None => match maximum {
+            Some(max) => Ok(Box::new(move |word| word.len() <= max)),
+            None => Ok(Box::new(|_| true)),
+        },
+    }
 }

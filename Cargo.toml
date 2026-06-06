@@ -1,6 +1,6 @@
 [package]
 name = "hangcrab"
-version = "0.2.0-alpha"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.96"
 description = "Rust-powered, CLI implementation of Hangman"

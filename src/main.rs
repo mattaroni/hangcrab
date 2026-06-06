@@ -29,6 +29,6 @@ async fn main() {
     };
 
     if let Err(e) = runner().await {
-        eprintln!("error: {e}"); // [TODO] use same/similar formatting as clap errors
+        eprintln!("\x1b[91;1merror:\x1b[0m {e}");
     }
 }

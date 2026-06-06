@@ -28,8 +28,7 @@ async fn main() {
         game::play_hangman(secret_word, args.lives)
     };
 
-    match runner().await {
-        Ok(_) => (),
-        Err(e) => eprintln!("error: {e}"), // [TODO] use same/similar formatting as clap errors
+    if let Err(e) = runner().await {
+        eprintln!("error: {e}"); // [TODO] use same/similar formatting as clap errors
     }
 }

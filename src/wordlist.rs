@@ -2,7 +2,7 @@ use std::{error::Error, path::PathBuf};
 
 use futures_util::StreamExt;
 use rand::prelude::*;
-use tokio::{fs::{self, File}, io::AsyncWriteExt};
+use tokio::{fs::{self, File}, io::{AsyncWriteExt, BufWriter}};
 
 const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
@@ -44,15 +44,16 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
         fs::create_dir(cache_directory).await?;
     }
 
-    let mut file = File::create(filepath).await?;
+    let file = File::create(filepath).await?;
+    let mut buffer = BufWriter::new(file);
     let mut stream = reqwest::get(WORDLIST_URL).await?.bytes_stream();
 
     while let Some(item) = stream.next().await {
         let chunk = item?;
-        file.write_all(&chunk).await?;
+        buffer.write_all(&chunk).await?;
     }
 
-    file.flush().await?;
+    buffer.flush().await?;
 
     Ok(())
 }

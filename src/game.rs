@@ -1,10 +1,20 @@
-use std::{collections::HashSet, fmt::Display, io::{self, Write}};
+use std::{
+    collections::HashSet,
+    fmt::Display,
+    io::{self, Write},
+};
 
-struct SecretLetter { letter: char, hidden: bool }
+struct SecretLetter {
+    letter: char,
+    hidden: bool,
+}
 
 impl From<char> for SecretLetter {
     fn from(value: char) -> Self {
-        Self { letter: value, hidden: true }
+        Self {
+            letter: value,
+            hidden: true,
+        }
     }
 }
 
@@ -23,7 +33,10 @@ impl SecretLetter {
     }
 }
 
-struct SecretWord { word: String, slots: Vec<SecretLetter> }
+struct SecretWord {
+    word: String,
+    slots: Vec<SecretLetter>,
+}
 
 impl Display for SecretWord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -34,7 +47,10 @@ impl Display for SecretWord {
 
 impl From<String> for SecretWord {
     fn from(value: String) -> Self {
-        let slots = value.chars().map(|letter| SecretLetter::from(letter)).collect();
+        let slots = value
+            .chars()
+            .map(|letter| SecretLetter::from(letter))
+            .collect();
         Self { word: value, slots }
     }
 }
@@ -57,7 +73,11 @@ impl SecretWord {
     }
 }
 
-enum EndingState { Win, Loss, Quit }
+enum EndingState {
+    Win,
+    Loss,
+    Quit,
+}
 
 struct GameTracker {
     secret_word: SecretWord,
@@ -72,7 +92,12 @@ impl GameTracker {
         let tried_letters = String::new();
         let guesses = HashSet::new();
 
-        Self { secret_word, lives, tried_letters, guesses }
+        Self {
+            secret_word,
+            lives,
+            tried_letters,
+            guesses,
+        }
     }
 
     fn ask_for_guess(&mut self) -> Result<Option<EndingState>, io::Error> {
@@ -144,7 +169,7 @@ impl GameTracker {
             0 => {
                 println!("There are no letter {capital_letter}'s.");
                 self.lives -= 1;
-            },
+            }
             1 => println!("There is 1 letter {capital_letter}."),
             x => println!("There are {x} letter {capital_letter}'s."),
         }
@@ -160,11 +185,11 @@ impl GameTracker {
 
     fn check_for_end(&self) -> Option<EndingState> {
         if self.lives == 0 {
-            return Some(EndingState::Loss)
+            return Some(EndingState::Loss);
         }
 
         if self.secret_word.hidden() {
-            return None
+            return None;
         }
 
         Some(EndingState::Win)

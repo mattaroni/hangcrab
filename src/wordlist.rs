@@ -2,7 +2,10 @@ use std::{error::Error, path::PathBuf};
 
 use futures_util::StreamExt;
 use rand::prelude::*;
-use tokio::{fs::{self, File}, io::{AsyncWriteExt, BufWriter}};
+use tokio::{
+    fs::{self, File},
+    io::{AsyncWriteExt, BufWriter},
+};
 
 const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
@@ -13,7 +16,8 @@ pub async fn get_random_word(min: Option<usize>, max: Option<usize>) -> Result<S
     let wordlist = fetch_wordlist().await?;
     let words: Vec<&str> = wordlist.split('\n').filter(wordlength_filter).collect();
 
-    let random_word = words.choose(&mut rand::rng())
+    let random_word = words
+        .choose(&mut rand::rng())
         .ok_or("no word found matching your specifications")?;
 
     Ok(random_word.to_ascii_lowercase())
@@ -29,10 +33,14 @@ async fn fetch_wordlist() -> Result<String, String> {
     wordlist_path.push(WORDLIST_FILENAME);
 
     if !wordlist_path.exists() {
-        download_wordlist(&wordlist_path).await.map_err(|e| e.to_string())?;
+        download_wordlist(&wordlist_path)
+            .await
+            .map_err(|e| e.to_string())?;
     }
 
-    let wordlist = fs::read_to_string(wordlist_path).await.map_err(|e| e.to_string())?;
+    let wordlist = fs::read_to_string(wordlist_path)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(wordlist)
 }
 

@@ -68,10 +68,7 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn create_wordlength_filter(
-    minimum: Option<usize>,
-    maximum: Option<usize>,
-) -> WordlengthFilter {
+fn create_wordlength_filter(minimum: Option<usize>, maximum: Option<usize>) -> WordlengthFilter {
     let handle_min_max = |min, max| {
         if min > max {
             return Err("wordlength minimum cannot be greater than maximum".to_string());

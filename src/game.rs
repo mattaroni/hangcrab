@@ -47,10 +47,7 @@ impl Display for SecretWord {
 
 impl From<String> for SecretWord {
     fn from(value: String) -> Self {
-        let slots = value
-            .chars()
-            .map(SecretLetter::from)
-            .collect();
+        let slots = value.chars().map(SecretLetter::from).collect();
         Self { word: value, slots }
     }
 }

@@ -25,7 +25,7 @@ impl SecretLetter {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn to_char(&self) -> char {
@@ -49,7 +49,7 @@ impl From<String> for SecretWord {
     fn from(value: String) -> Self {
         let slots = value
             .chars()
-            .map(|letter| SecretLetter::from(letter))
+            .map(SecretLetter::from)
             .collect();
         Self { word: value, slots }
     }

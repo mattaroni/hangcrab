@@ -7,6 +7,8 @@ use tokio::{
     io::{AsyncWriteExt, BufWriter},
 };
 
+type WordlengthFilter = Result<Box<dyn Fn(&&str) -> bool>, String>;
+
 const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
 const WORDLIST_URL: &str = "https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt";
@@ -69,7 +71,7 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
 fn create_wordlength_filter(
     minimum: Option<usize>,
     maximum: Option<usize>,
-) -> Result<Box<dyn Fn(&&str) -> bool>, String> {
+) -> WordlengthFilter {
     let handle_min_max = |min, max| {
         if min > max {
             return Err("wordlength minimum cannot be greater than maximum".to_string());

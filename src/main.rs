@@ -1,7 +1,15 @@
 use clap::Parser;
+use thiserror::Error;
 
 mod game;
 mod wordlist;
+
+#[derive(Error, Debug)]
+#[error("{0}")]
+enum Error {
+    GameError(#[from] game::Error),
+    WordlistError(#[from] wordlist::Error),
+}
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -23,9 +31,10 @@ struct Cli {
 async fn main() {
     let args = Cli::parse();
 
-    let runner = async || {
+    let runner = async || -> Result<(), Error> {
         let secret_word = wordlist::get_random_word(args.min, args.max).await?;
-        game::play_hangman(secret_word, args.lives)
+        game::play_hangman(secret_word, args.lives)?;
+        Ok(())
     };
 
     if let Err(e) = runner().await {

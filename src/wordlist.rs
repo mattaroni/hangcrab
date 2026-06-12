@@ -1,52 +1,65 @@
-use std::{error::Error, path::PathBuf};
+use std::path::PathBuf;
 
 use futures_util::StreamExt;
 use rand::prelude::*;
+use thiserror::Error;
 use tokio::{
     fs::{self, File},
-    io::{AsyncWriteExt, BufWriter},
+    io::{self, AsyncWriteExt, BufWriter},
 };
 
-type WordlengthFilter = Result<Box<dyn Fn(&&str) -> bool>, String>;
+type WordlengthFilter = Result<Box<dyn Fn(&&str) -> bool>, Error>;
 
 const CACHE_DIRECTORY_NAME: &str = "hangcrab";
 const WORDLIST_FILENAME: &str = "wordlist.txt";
 const WORDLIST_URL: &str = "https://people.sc.fsu.edu/~jburkardt/datasets/words/sowpods.txt";
 
-pub async fn get_random_word(min: Option<usize>, max: Option<usize>) -> Result<String, String> {
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("wordlength minimum cannot be greater than maximum")]
+    BadWordlengthRange,
+
+    #[error("failed to cache wordlist: {0}")]
+    CachingFailure(#[from] io::Error),
+
+    #[error("failed to read online wordlist")]
+    ConnectionFailure(#[from] reqwest::Error),
+
+    #[error("no word found matching your specifications")]
+    NoWordFound,
+
+    #[error("unsupported operating system")]
+    UnsupportedOS,
+}
+
+pub async fn get_random_word(min: Option<usize>, max: Option<usize>) -> Result<String, Error> {
     let wordlength_filter = create_wordlength_filter(min, max)?;
     let wordlist = fetch_wordlist().await?;
     let words: Vec<&str> = wordlist.split('\n').filter(wordlength_filter).collect();
 
-    let random_word = words
-        .choose(&mut rand::rng())
-        .ok_or("no word found matching your specifications")?;
+    let random_word = words.choose(&mut rand::rng()).ok_or(Error::NoWordFound)?;
 
     Ok(random_word.to_ascii_lowercase())
 }
 
-async fn fetch_wordlist() -> Result<String, String> {
+async fn fetch_wordlist() -> Result<String, Error> {
     let mut wordlist_path = match dirs::cache_dir() {
         Some(x) => x,
-        None => return Err("unsupported operating system".to_string()),
+        None => return Err(Error::UnsupportedOS),
     };
 
     wordlist_path.push(CACHE_DIRECTORY_NAME);
     wordlist_path.push(WORDLIST_FILENAME);
 
     if !wordlist_path.exists() {
-        download_wordlist(&wordlist_path)
-            .await
-            .map_err(|e| e.to_string())?;
+        download_wordlist(&wordlist_path).await?;
     }
 
-    let wordlist = fs::read_to_string(wordlist_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let wordlist = fs::read_to_string(wordlist_path).await?;
     Ok(wordlist)
 }
 
-async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
+async fn download_wordlist(filepath: &PathBuf) -> Result<(), Error> {
     // [NOTE]: `filepath` is guarenteed to have a parent directory
     let cache_directory = filepath.parent().unwrap();
 
@@ -54,9 +67,9 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
         fs::create_dir(cache_directory).await?;
     }
 
+    let mut stream = reqwest::get(WORDLIST_URL).await?.bytes_stream();
     let file = File::create(filepath).await?;
     let mut buffer = BufWriter::new(file);
-    let mut stream = reqwest::get(WORDLIST_URL).await?.bytes_stream();
 
     while let Some(item) = stream.next().await {
         let chunk = item?;
@@ -71,7 +84,7 @@ async fn download_wordlist(filepath: &PathBuf) -> Result<(), Box<dyn Error>> {
 fn create_wordlength_filter(minimum: Option<usize>, maximum: Option<usize>) -> WordlengthFilter {
     let handle_min_max = |min, max| {
         if min > max {
-            return Err("wordlength minimum cannot be greater than maximum".to_string());
+            return Err(Error::BadWordlengthRange);
         }
 
         Ok(move |word: &&str| word.len() >= min && word.len() <= max)

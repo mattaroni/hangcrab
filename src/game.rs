@@ -4,6 +4,17 @@ use std::{
     io::{self, Write},
 };
 
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("failed to read user input: {0}")]
+    InputFailure(#[from] io::Error),
+
+    #[error("cannot start with zero lives")]
+    ZeroLives,
+}
+
 struct SecretLetter {
     letter: char,
     hidden: bool,
@@ -97,7 +108,7 @@ impl GameTracker {
         }
     }
 
-    fn ask_for_guess(&mut self) -> Result<Option<EndingState>, io::Error> {
+    fn ask_for_guess(&mut self) -> Result<Option<EndingState>, Error> {
         let mut guess = String::new();
 
         print!("{} · {} lives", self.secret_word, self.lives);
@@ -193,9 +204,9 @@ impl GameTracker {
     }
 }
 
-pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), String> {
+pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
     if lives == 0 {
-        return Err("cannot start with zero lives".to_string());
+        return Err(Error::ZeroLives);
     }
 
     let secret_word_message = format!("The secret word was: {}", secret_word);
@@ -203,7 +214,7 @@ pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), String> {
     let mut ending_state: Option<EndingState> = None;
 
     while ending_state.is_none() {
-        ending_state = game_tracker.ask_for_guess().map_err(|e| e.to_string())?;
+        ending_state = game_tracker.ask_for_guess()?;
         println!();
     }
 

@@ -470,6 +470,7 @@ dependencies = [
  "futures-util",
  "rand 0.10.1",
  "reqwest",
+ "thiserror",
  "tokio",
 ]
 

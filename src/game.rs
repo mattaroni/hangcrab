@@ -198,9 +198,8 @@ impl GameTracker {
 
     fn try_guess_letter(&mut self, letter: char) -> Option<EndingState> {
         let capital_letter = letter.to_ascii_uppercase();
-        let count = self.secret_word.check_letter(letter);
 
-        match count {
+        match self.secret_word.check_letter(letter) {
             0 => {
                 println!("There are no letter {capital_letter}'s.");
                 self.lives -= 1;

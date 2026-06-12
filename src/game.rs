@@ -19,7 +19,7 @@ pub enum Error {
     ZeroLives,
 }
 
-/// Represents a single letter in [SecretWord].
+/// Represents a single letter in a [`SecretWord`].
 struct SecretLetter {
     /// The letter itself.
     letter: char,
@@ -40,7 +40,7 @@ impl SecretLetter {
         false
     }
 
-    /// Returns the secret letter as a [char] if it's not hidden, or an
+    /// Returns the secret letter as a [`char`] if it's not hidden, or an
     /// underscore if it is.
     fn to_char(&self) -> char {
         if self.hidden { '_' } else { self.letter }
@@ -58,7 +58,7 @@ impl From<char> for SecretLetter {
 
 /// Represents the secret word in a game of hangman.
 struct SecretWord {
-    /// The word itself
+    /// The word itself.
     word: String,
 
     /// Each of the letters in the secret word, as hidden "slots" that can be
@@ -113,14 +113,25 @@ enum EndingState {
     Quit,
 }
 
+/// Container for all the stats involved in a game of hangman.
 struct GameTracker {
+    /// The secret word that the player must try to guess.
     secret_word: SecretWord,
+
+    /// How many lives the player has remaining.
     lives: u8,
+
+    /// What letters has the player already guessed. Note that this is only used
+    /// for *displaying* what letter guesses have already been made, not for
+    /// actually keeping track of those guesses.
     tried_letters: String,
+
+    /// Collection of all the unique guesses the player has made thus far.
     guesses: HashSet<String>,
 }
 
 impl GameTracker {
+    /// Creates a new [`GameTracker`].
     fn new(secret_word: String, lives: u8) -> Self {
         let secret_word = SecretWord::from(secret_word);
         let tried_letters = String::new();
@@ -134,6 +145,25 @@ impl GameTracker {
         }
     }
 
+    /// Prints the current states of the game, then prompts the player to enter
+    /// a guess for the secret word. After the guess is entered, prints a
+    /// message describing the validity/accuracy that guess (i.e. if it's
+    /// correct, incorrect, invalid, etc.), then modifies the game stats
+    /// accordingly:
+    ///
+    /// - An incorrect guess will result in one life being removed from the
+    ///   player.
+    /// - A correct *letter* guess will reveal where that letter is in the
+    ///   secret word.
+    ///
+    /// Returns whether or not the game is to end after this guess, and if so;
+    /// what kind of ending the player achieved.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if either the standard output fails
+    /// to write the input prompt, or the standard input fails to read the
+    /// player's guess.
     fn ask_for_guess(&mut self) -> Result<Option<EndingState>, Error> {
         let mut guess = String::new();
 
@@ -156,6 +186,17 @@ impl GameTracker {
         Ok(self.check_guess(guess))
     }
 
+    /// Evaluates the validity and accuracy of a guess for the secret word, then
+    /// prints a message describing its conclusion and modifies the game stats
+    /// accordingly:
+    ///
+    /// - An incorrect guess will result in one life being removed from the
+    ///   player.
+    /// - A correct *letter* guess will reveal where that letter is in the
+    ///   secret word.
+    ///
+    /// Returns whether or not the game is to end after this guess, and if so;
+    /// what kind of ending the player achieved.
     fn check_guess(&mut self, guess: String) -> Option<EndingState> {
         if guess.is_empty() {
             println!("Please provide a guess.");
@@ -176,11 +217,17 @@ impl GameTracker {
             return self.try_guess_word(guess);
         }
 
-        // [NOTE] earlier length checks ensure `unwrap()` always works
+        // [NOTE] earlier length checks ensure `unwrap()` will never panic
         let letter = guess.chars().last().unwrap();
         self.try_guess_letter(letter)
     }
 
+    /// Determines whether or not the provided word matches the secret word. If
+    /// not, prints a message explaining so, and removes one life from the
+    /// player.
+    ///
+    /// Returns whether or not the game is to end after this guess, and if so;
+    /// what kind of ending the player achieved.
     fn try_guess_word(&mut self, word: String) -> Option<EndingState> {
         if word == self.secret_word.word {
             return Some(EndingState::Win);
@@ -196,6 +243,14 @@ impl GameTracker {
         None
     }
 
+    /// Determines whether or not the provided letter matches any letters in the
+    /// secret word. If so, reveals all the letters in the secret word that
+    /// match the given letter. If not, removes one life from the player.
+    /// Lastly, prints a message explaining how many letters in the secret word
+    /// match the provided letter.
+    ///
+    /// Returns whether or not the game is to end after this guess, and if so;
+    /// what kind of ending the player achieved.
     fn try_guess_letter(&mut self, letter: char) -> Option<EndingState> {
         let capital_letter = letter.to_ascii_uppercase();
 
@@ -217,6 +272,12 @@ impl GameTracker {
         self.check_for_end()
     }
 
+    /// Returns whether or not the game is to end after this guess, and if so;
+    /// what kind of ending the player achieved.
+    ///
+    /// - If the secret word is fully revealed, either by correctly guessing all
+    ///   its letters or the entire word, returns a "win" ending state.
+    /// - If the player has no more lives, returns a "loss" ending state.
     fn check_for_end(&self) -> Option<EndingState> {
         if self.lives == 0 {
             return Some(EndingState::Loss);
@@ -230,6 +291,14 @@ impl GameTracker {
     }
 }
 
+/// Starts a game of hangman using the provided secret word and number of
+/// starting lives. The game ends once the player wins, looses, or asks to leave
+/// the game (via an EOF shortcut).
+///
+/// # Errors
+///
+/// This function will return an error if the number of starting lives is set to
+/// zero, or if an IO error occurs when prompting the player to make a guess.
 pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
     if lives == 0 {
         return Err(Error::ZeroLives);

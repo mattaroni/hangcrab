@@ -198,28 +198,26 @@ impl GameTracker {
     /// Returns whether or not the game is to end after this guess, and if so;
     /// what kind of ending the player achieved.
     fn check_guess(&mut self, guess: String) -> Option<EndingState> {
-        if guess.is_empty() {
-            println!("Please provide a guess.");
-            return None;
-        }
-
         if !guess.chars().all(|letter| letter.is_alphabetic()) {
             println!("Please guess a valid letter or word.");
             return None;
         }
 
-        if !self.guesses.insert(guess.clone()) {
+        if !guess.is_empty() && !self.guesses.insert(guess.clone()) {
             println!("You already made this guess.");
             return None;
-        };
+        }
 
-        if guess.len() != 1 {
+        if guess.len() > 1 {
             return self.try_guess_word(guess);
         }
 
-        // [NOTE] earlier length checks ensure `unwrap()` will never panic
-        let letter = guess.chars().last().unwrap();
-        self.try_guess_letter(letter)
+        if let Some(letter) = guess.chars().last() {
+            return self.try_guess_letter(letter);
+        }
+
+        println!("Please provide a guess.");
+        None
     }
 
     /// Determines whether or not the provided word matches the secret word. If
@@ -306,15 +304,18 @@ pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
 
     let secret_word_message = format!("The secret word was: {}", secret_word);
     let mut game_tracker = GameTracker::new(secret_word, lives);
-    let mut ending_state: Option<EndingState> = None;
+    let ending_state: EndingState;
 
-    while ending_state.is_none() {
-        ending_state = game_tracker.ask_for_guess()?;
+    loop {
+        if let Some(ending) = game_tracker.ask_for_guess()? {
+            ending_state = ending;
+            break;
+        }
+
         println!();
     }
 
-    // [NOTE] previous `while` block ensures `unwrap()` always works
-    match ending_state.unwrap() {
+    match ending_state {
         EndingState::Win => println!("You win! {secret_word_message}"),
         EndingState::Loss => println!("Game over! {secret_word_message}"),
         EndingState::Quit => println!("Goodbye!"),

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make error messages more descriptive.
 - Optimize the process for downloading the wordlist.
 
 ## [0.2.0] - 2026-06-06

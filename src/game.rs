@@ -6,18 +6,45 @@ use std::{
 
 use thiserror::Error;
 
+/// Errors that may occur when running the actual hangman game.
 #[derive(Error, Debug)]
 pub enum Error {
+    /// Error if stdout fails to flush the prompt for user input, or stdin
+    /// fails to read user input.
     #[error("failed to read user input: {0}")]
     InputFailure(#[from] io::Error),
 
+    /// Error if the player tries to start a game with zero lives.
     #[error("cannot start with zero lives")]
     ZeroLives,
 }
 
+/// Represents a single letter in [SecretWord].
 struct SecretLetter {
+    /// The letter itself.
     letter: char,
+
+    /// Whether or not to show the letter.
     hidden: bool,
+}
+
+impl SecretLetter {
+    /// Compares the secret letter with the provided letter, and reveal the
+    /// secret letter if they match.
+    fn check(&mut self, letter: char) -> bool {
+        if self.hidden && letter == self.letter {
+            self.hidden = false;
+            return true;
+        }
+
+        false
+    }
+
+    /// Returns the secret letter as a [char] if it's not hidden, or an
+    /// underscore if it is.
+    fn to_char(&self) -> char {
+        if self.hidden { '_' } else { self.letter }
+    }
 }
 
 impl From<char> for SecretLetter {
@@ -29,24 +56,35 @@ impl From<char> for SecretLetter {
     }
 }
 
-impl SecretLetter {
-    fn check(&mut self, letter: char) -> bool {
-        if self.hidden && letter == self.letter {
-            self.hidden = false;
-            return true;
-        }
+/// Represents the secret word in a game of hangman.
+struct SecretWord {
+    /// The word itself
+    word: String,
 
-        false
-    }
-
-    fn to_char(&self) -> char {
-        if self.hidden { '_' } else { self.letter }
-    }
+    /// Each of the letters in the secret word, as hidden "slots" that can be
+    /// revealed independently from one another.
+    slots: Vec<SecretLetter>,
 }
 
-struct SecretWord {
-    word: String,
-    slots: Vec<SecretLetter>,
+impl SecretWord {
+    /// Try to guess a letter in the secret word. Reveals any of the secret
+    /// letters that match the provided letter. Returns the number of matches.
+    fn check_letter(&mut self, letter: char) -> usize {
+        let mut count = 0;
+
+        for slot in self.slots.iter_mut() {
+            if slot.check(letter) {
+                count += 1;
+            }
+        }
+
+        count
+    }
+
+    /// Checks whether or not the secret word is fully revealed.
+    fn hidden(&self) -> bool {
+        self.slots.iter().any(|letter| letter.hidden)
+    }
 }
 
 impl Display for SecretWord {
@@ -63,27 +101,15 @@ impl From<String> for SecretWord {
     }
 }
 
-impl SecretWord {
-    fn check_letter(&mut self, letter: char) -> usize {
-        let mut count = 0;
-
-        for slot in self.slots.iter_mut() {
-            if slot.check(letter) {
-                count += 1;
-            }
-        }
-
-        count
-    }
-
-    fn hidden(&self) -> bool {
-        self.slots.iter().any(|letter| letter.hidden)
-    }
-}
-
+/// Different ways the game can end.
 enum EndingState {
+    /// Player guesses the secret word correctly and wins the game.
     Win,
+
+    /// Player looses all their lives and the game ends.
     Loss,
+
+    /// Player requests to exit the program.
     Quit,
 }
 
@@ -150,6 +176,7 @@ impl GameTracker {
             return self.try_guess_word(guess);
         }
 
+        // [NOTE] earlier length checks ensure `unwrap()` always works
         let letter = guess.chars().last().unwrap();
         self.try_guess_letter(letter)
     }
@@ -218,6 +245,7 @@ pub fn play_hangman(secret_word: String, lives: u8) -> Result<(), Error> {
         println!();
     }
 
+    // [NOTE] previous `while` block ensures `unwrap()` always works
     match ending_state.unwrap() {
         EndingState::Win => println!("You win! {secret_word_message}"),
         EndingState::Loss => println!("Game over! {secret_word_message}"),

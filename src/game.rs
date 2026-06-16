@@ -1,3 +1,5 @@
+//! Code used for running a game of hangman.
+
 use std::{
     collections::HashSet,
     fmt::Display,

@@ -1,3 +1,5 @@
+//! Code used for selecting a random word for a game of hangman.
+
 use std::path::PathBuf;
 
 use futures_util::StreamExt;

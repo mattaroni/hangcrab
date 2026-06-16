@@ -95,8 +95,9 @@ async fn fetch_wordlist() -> Result<String, Error> {
         download_wordlist(&wordlist_path).await?;
     }
 
-    let wordlist = fs::read_to_string(wordlist_path).await
-        .map_err(|e| Error::CacheUnreadable(e))?;
+    let wordlist = fs::read_to_string(wordlist_path)
+        .await
+        .map_err(Error::CacheUnreadable)?;
 
     Ok(wordlist)
 }

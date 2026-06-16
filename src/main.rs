@@ -4,13 +4,18 @@ use thiserror::Error;
 mod game;
 mod wordlist;
 
+/// Errors that may occur while running the application.
 #[derive(Error, Debug)]
 #[error("{0}")]
 enum Error {
+    /// An error occured while trying to run the game itself.
     GameError(#[from] game::Error),
+
+    /// An error occured while trying to handle the wordlist.
     WordlistError(#[from] wordlist::Error),
 }
 
+/// Command-line arguments for the application.
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
@@ -27,6 +32,7 @@ struct Cli {
     max: Option<usize>,
 }
 
+/// Runs the application.
 #[tokio::main]
 async fn main() {
     let args = Cli::parse();

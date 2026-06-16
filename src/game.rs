@@ -9,12 +9,11 @@ use thiserror::Error;
 /// Errors that may occur when running the actual hangman game.
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Error if stdout fails to flush the prompt for user input, or stdin
-    /// fails to read user input.
+    /// An IO error occured while trying to prompt the user for a guess.
     #[error("failed to read user input: {0}")]
     InputFailure(#[from] io::Error),
 
-    /// Error if the player tries to start a game with zero lives.
+    /// The player tried to start a game with zero lives.
     #[error("cannot start with zero lives")]
     ZeroLives,
 }
